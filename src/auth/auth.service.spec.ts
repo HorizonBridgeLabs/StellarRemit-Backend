@@ -9,10 +9,14 @@ const mockPrisma = {
   user: {
     findUnique: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
   },
 };
 
-const mockJwt = { sign: jest.fn().mockReturnValue('token') };
+const mockJwt = {
+  sign: jest.fn().mockReturnValue('token'),
+  verify: jest.fn(),
+};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -47,7 +51,11 @@ describe('AuthService', () => {
       );
       const hash = mockPrisma.user.create.mock.calls[0][0].data.password;
       expect(await bcrypt.compare('password123', hash)).toBe(true);
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'uuid' } }),
+      );
       expect(result.access_token).toBe('token');
+      expect(result.refresh_token).toBe('token');
     });
 
     it('throws ConflictException if email already exists', async () => {
@@ -64,7 +72,11 @@ describe('AuthService', () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 'uuid', email: 'a@b.com', password: hash });
 
       const result = await service.login({ email: 'a@b.com', password: 'password123' });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'uuid' } }),
+      );
       expect(result.access_token).toBe('token');
+      expect(result.refresh_token).toBe('token');
     });
 
     it('throws UnauthorizedException for wrong password', async () => {
@@ -81,6 +93,31 @@ describe('AuthService', () => {
       await expect(
         service.login({ email: 'x@y.com', password: 'password123' }),
       ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('refresh', () => {
+    it('returns new tokens when refresh token is valid', async () => {
+      mockJwt.verify.mockReturnValue({ sub: 'uuid', email: 'a@b.com' });
+      const refreshToken = 'refresh-token';
+      const hashed = await bcrypt.hash(refreshToken, 10);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'uuid', email: 'a@b.com', refreshTokenHash: hashed });
+
+      const result = await service.refresh(refreshToken);
+
+      expect(mockJwt.verify).toHaveBeenCalledWith(refreshToken, expect.any(Object));
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'uuid' } }),
+      );
+      expect(result.access_token).toBe('token');
+      expect(result.refresh_token).toBe('token');
+    });
+
+    it('throws UnauthorizedException for invalid refresh token', async () => {
+      mockJwt.verify.mockImplementation(() => {
+        throw new Error('invalid');
+      });
+      await expect(service.refresh('invalid-token')).rejects.toThrow(UnauthorizedException);
     });
   });
 });
