@@ -18,4 +18,9 @@ export class WalletController {
   upsert(@CurrentUser() user: any, @Body() dto: UpsertWalletDto) {
     return this.wallet.upsert(user.id, dto.publicKey);
   }
+
+  @Post('fund')
+  fund(@CurrentUser() user: any, @Body() dto: UpsertWalletDto) {
+    return this.wallet.fund(user.id, dto.publicKey);
+  }
 }

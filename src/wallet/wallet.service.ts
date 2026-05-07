@@ -20,4 +20,21 @@ export class WalletService {
       update: { publicKey },
     });
   }
+
+  async fund(userId: string, publicKey: string) {
+    if (!publicKey) throw new BadRequestException('publicKey is required');
+
+    const friendbotResult = await this.stellar.fundAccount(publicKey);
+
+    const wallet = await this.prisma.wallet.upsert({
+      where: { userId },
+      create: { userId, publicKey },
+      update: { publicKey },
+    });
+
+    return {
+      wallet,
+      friendbot: friendbotResult,
+    };
+  }
 }

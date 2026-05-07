@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as StellarSdk from 'stellar-sdk';
+import * as https from 'https';
 
 @Injectable()
 export class StellarService {
@@ -35,5 +36,36 @@ export class StellarService {
 
     tx.sign(keypair);
     return this.server.submitTransaction(tx);
+  }
+
+  async fundAccount(publicKey: string) {
+    if (this.network !== StellarSdk.Networks.TESTNET) {
+      throw new BadRequestException('Friendbot is only available on the Stellar testnet');
+    }
+
+    const endpoint = new URL('https://friendbot.stellar.org');
+    endpoint.searchParams.set('addr', publicKey);
+
+    return new Promise<any>((resolve, reject) => {
+      https.get(endpoint, (res) => {
+        let body = '';
+        res.on('data', (chunk) => {
+          body += chunk;
+        });
+
+        res.on('end', () => {
+          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              resolve(JSON.parse(body));
+            } catch (error) {
+              resolve({ result: body });
+            }
+            return;
+          }
+
+          reject(new BadRequestException(`Friendbot request failed with status ${res.statusCode}: ${body}`));
+        });
+      }).on('error', (error) => reject(new BadRequestException(`Friendbot request failed: ${error.message}`)));
+    });
   }
 }
