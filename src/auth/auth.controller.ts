@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, RefreshDto, LogoutDto } from './dto/auth.dto';
@@ -31,4 +31,13 @@ export class AuthController {
     const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     return this.auth.logout(user.id, accessToken, dto.refreshToken);
   }
+
+
+// ...inside AuthController class:
+
+@UseGuards(JwtAuthGuard)
+@Get('me')
+getMe(@CurrentUser() user: any) {
+  return this.auth.getMe(user.id);
+}
 }

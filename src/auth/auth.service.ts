@@ -1,14 +1,8 @@
-import {
-import {
-  Injectable,
-  ConflictException,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -124,5 +118,15 @@ export class AuthService {
   private async updateRefreshTokenHash(userId: string, refreshToken: string) {
     const hash = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: hash } });
+  }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, createdAt: true },
+    });
+  
+    if (!user) throw new UnauthorizedException('User not found');
+    return user;
   }
 }
