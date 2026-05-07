@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WalletService } from './wallet.service';
+import { UpsertWalletDto } from './dto/wallet.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('wallet')
@@ -14,7 +15,7 @@ export class WalletController {
   }
 
   @Post()
-  upsert(@CurrentUser() user: any, @Body('publicKey') publicKey: string) {
-    return this.wallet.upsert(user.id, publicKey);
+  upsert(@CurrentUser() user: any, @Body() dto: UpsertWalletDto) {
+    return this.wallet.upsert(user.id, dto.publicKey);
   }
 }

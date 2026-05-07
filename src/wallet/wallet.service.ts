@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StellarService } from '../stellar/stellar.service';
 
@@ -13,6 +13,7 @@ export class WalletService {
   }
 
   upsert(userId: string, publicKey: string) {
+    if (!publicKey) throw new BadRequestException('publicKey is required');
     return this.prisma.wallet.upsert({
       where: { userId },
       create: { userId, publicKey },
