@@ -2,9 +2,9 @@ import { Test } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
-const authService = { login: jest.fn() };
+const authService = { login: jest.fn(), logout: jest.fn() };
 
-describe('AuthController.login', () => {
+describe('AuthController', () => {
   let controller: AuthController;
 
   beforeEach(async () => {
@@ -24,6 +24,20 @@ describe('AuthController.login', () => {
     const result = await controller.login(dto);
 
     expect(authService.login).toHaveBeenCalledWith(dto);
+    expect(result).toEqual(expected);
+  });
+
+  it('calls AuthService.logout and returns result', async () => {
+    const expected = { success: true };
+    authService.logout.mockResolvedValue(expected);
+
+    const result = await controller.logout(
+      { id: 'uuid', email: 'a@b.com' } as any,
+      { headers: { authorization: 'Bearer access-token' } } as any,
+      { refreshToken: 'refresh-token' },
+    );
+
+    expect(authService.logout).toHaveBeenCalledWith('uuid', 'access-token', 'refresh-token');
     expect(result).toEqual(expected);
   });
 });

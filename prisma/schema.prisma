@@ -35,3 +35,10 @@ model Transaction {
   createdAt DateTime @default(now())
   sender    User     @relation("SentTransactions", fields: [senderId], references: [id])
 }
+
+model BlacklistedToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
