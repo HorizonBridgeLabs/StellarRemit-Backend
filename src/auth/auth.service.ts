@@ -1,4 +1,10 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -39,6 +45,10 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
+    if (await this.isTokenBlacklisted(refreshToken)) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
     const payload = this.verifyRefreshToken(refreshToken);
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user || !user.refreshTokenHash) throw new UnauthorizedException('Invalid refresh token');
@@ -53,7 +63,21 @@ export class AuthService {
     return { access_token: accessToken, refresh_token: newRefreshToken };
   }
 
-  private verifyRefreshToken(token: string) {
+  async logout(userId: string, accessToken: string | undefined, refreshToken?: string) {
+    if (!accessToken) {
+      throw new BadRequestException('Access token is required for logout');
+    }
+
+    await this.blacklistToken(accessToken);
+    if (refreshToken) {
+      await this.blacklistToken(refreshToken);
+    }
+
+    await this.clearRefreshTokenHash(userId);
+    return { success: true };
+  }
+
+  private async verifyRefreshToken(token: string) {
     try {
       return this.jwt.verify(token, {
         secret: process.env.JWT_REFRESH_SECRET ?? 'refresh-secret',
@@ -63,8 +87,31 @@ export class AuthService {
     }
   }
 
+  private async isTokenBlacklisted(token: string) {
+    const entry = await this.prisma.blacklistedToken.findUnique({ where: { token } });
+    return Boolean(entry);
+  }
+
+  private async blacklistToken(token: string) {
+    const decoded = this.jwt.decode(token) as { exp?: number } | null;
+    if (!decoded?.exp) {
+      throw new BadRequestException('Token does not contain an expiration');
+    }
+
+    const expiresAt = new Date(decoded.exp * 1000);
+    await this.prisma.blacklistedToken.upsert({
+      where: { token },
+      update: { expiresAt },
+      create: { token, expiresAt },
+    });
+  }
+
+  private async clearRefreshTokenHash(userId: string) {
+    await this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null } });
+  }
+
   private signAccessToken(sub: string, email: string) {
-    return this.jwt.sign({ sub, email });
+    return this.jwt.sign({ sub, email }, { expiresIn: '1h' });
   }
 
   private signRefreshToken(sub: string, email: string) {

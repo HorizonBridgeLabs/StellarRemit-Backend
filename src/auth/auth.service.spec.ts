@@ -11,11 +11,16 @@ const mockPrisma = {
     create: jest.fn(),
     update: jest.fn(),
   },
+  blacklistedToken: {
+    findUnique: jest.fn(),
+    upsert: jest.fn(),
+  },
 };
 
 const mockJwt = {
   sign: jest.fn().mockReturnValue('token'),
   verify: jest.fn(),
+  decode: jest.fn().mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 3600 }),
 };
 
 describe('AuthService', () => {
@@ -99,6 +104,7 @@ describe('AuthService', () => {
   describe('refresh', () => {
     it('returns new tokens when refresh token is valid', async () => {
       mockJwt.verify.mockReturnValue({ sub: 'uuid', email: 'a@b.com' });
+      mockPrisma.blacklistedToken.findUnique.mockResolvedValue(null);
       const refreshToken = 'refresh-token';
       const hashed = await bcrypt.hash(refreshToken, 10);
       mockPrisma.user.findUnique.mockResolvedValue({ id: 'uuid', email: 'a@b.com', refreshTokenHash: hashed });
@@ -118,6 +124,25 @@ describe('AuthService', () => {
         throw new Error('invalid');
       });
       await expect(service.refresh('invalid-token')).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('logout', () => {
+    it('blacklists access and refresh tokens and clears refresh token hash', async () => {
+      mockPrisma.blacklistedToken.upsert.mockResolvedValue({});
+      mockPrisma.user.update.mockResolvedValue({});
+
+      const result = await service.logout('uuid', 'access-token', 'refresh-token');
+
+      expect(mockPrisma.blacklistedToken.upsert).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.blacklistedToken.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { token: 'access-token' } }),
+      );
+      expect(mockPrisma.blacklistedToken.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { token: 'refresh-token' } }),
+      );
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({ where: { id: 'uuid' }, data: { refreshTokenHash: null } });
+      expect(result).toEqual({ success: true });
     });
   });
 });
