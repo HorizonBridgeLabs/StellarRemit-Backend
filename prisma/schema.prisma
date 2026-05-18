@@ -13,6 +13,7 @@ model User {
   password         String
   refreshTokenHash String?
   createdAt        DateTime      @default(now())
+  deletedAt        DateTime?
   wallet           Wallet?
   sentTx           Transaction[] @relation("SentTransactions")
 }
