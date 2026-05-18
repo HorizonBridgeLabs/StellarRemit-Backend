@@ -31,4 +31,8 @@ export class UsersService {
       select: { id: true, email: true, createdAt: true },
     });
   }
+
+  softDelete(id: string) {
+    return this.prisma.user.update({ where: { id }, data: { deletedAt: new Date() } });
+  }
 }
