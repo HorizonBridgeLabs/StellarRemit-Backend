@@ -14,15 +14,18 @@ model User {
   refreshTokenHash String?
   createdAt        DateTime      @default(now())
   deletedAt        DateTime?
-  wallet           Wallet?
+  wallets          Wallet[]
   sentTx           Transaction[] @relation("SentTransactions")
 }
 
 model Wallet {
-  id        String @id @default(uuid())
-  userId    String @unique
-  publicKey String @unique
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  publicKey String   @unique
+  label     String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
