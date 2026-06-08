@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Validate } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, Validate } from 'class-validator';
 import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
 import { StrKey } from 'stellar-sdk';
 
@@ -19,4 +19,15 @@ export class UpsertWalletDto {
   @IsNotEmpty()
   @Validate(IsStellarPublicKeyConstraint)
   publicKey: string;
+}
+
+export class CreateWalletDto {
+  @IsString()
+  @IsNotEmpty()
+  @Validate(IsStellarPublicKeyConstraint)
+  publicKey: string;
+
+  @IsOptional()
+  @IsString()
+  label?: string;
 }
