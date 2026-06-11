@@ -4,6 +4,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 
+export interface AuthTokens {
+  access_token: string;
+  refresh_token: string;
+}
+
+export interface AuthResult extends AuthTokens {
+  user: { id: string; email: string; createdAt: Date };
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -11,7 +20,7 @@ export class AuthService {
     private jwt: JwtService,
   ) {}
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto): Promise<AuthResult> {
     const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (exists) throw new ConflictException('Email already registered');
 
@@ -28,7 +37,7 @@ export class AuthService {
     return { user, access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<AuthTokens> {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
@@ -41,7 +50,7 @@ export class AuthService {
     return { access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async refresh(refreshToken: string) {
+  async refresh(refreshToken: string): Promise<AuthTokens> {
     if (await this.isTokenBlacklisted(refreshToken)) {
       throw new UnauthorizedException('Invalid refresh token');
     }
