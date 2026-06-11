@@ -19,7 +19,7 @@ export class TransactionsController {
   @ApiResponse({ status: 201, description: 'Transaction created successfully', type: TransactionResponseDto })
   @Post()
   create(@CurrentUser() user: any, @Body() dto: CreateTransactionDto) {
-    return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset);
+    return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset, dto.fee);
   }
 
   @ApiOperation({ summary: 'List transactions for current user' })
