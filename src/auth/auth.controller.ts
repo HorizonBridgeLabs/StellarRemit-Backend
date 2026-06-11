@@ -49,8 +49,6 @@ export class AuthController {
     return this.auth.logout(user.id, accessToken, dto.refreshToken);
   }
 
-  // ...inside AuthController class:
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current authenticated user' })
   @ApiResponse({ status: 200, description: 'Current user returned' })

@@ -84,7 +84,7 @@ describe('TransactionsService', () => {
   });
 
   describe('updateStatus', () => {
-    it('updates transaction status', async () => {
+    it('updates transaction status and returns success message', async () => {
       mockPrisma.transaction.updateMany.mockResolvedValue({ count: 1 });
 
       const result = await service.updateStatus('tx1', 'user-1', 'completed');
@@ -92,7 +92,14 @@ describe('TransactionsService', () => {
         where: { id: 'tx1', senderId: 'user-1' },
         data: { status: 'completed' },
       });
-      expect(result).toEqual({ count: 1 });
+      expect(result).toEqual({ message: 'Transaction status updated', updated: true, status: 'completed' });
+    });
+
+    it('returns not found message when transaction does not exist', async () => {
+      mockPrisma.transaction.updateMany.mockResolvedValue({ count: 0 });
+
+      const result = await service.updateStatus('tx1', 'user-1', 'completed');
+      expect(result).toEqual({ message: 'Transaction not found or not authorized', updated: false });
     });
   });
 });
