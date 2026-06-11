@@ -42,12 +42,20 @@ describe('TransactionsService', () => {
     });
 
     it('defaults asset to XLM', async () => {
-      const expected = { id: 'tx1', senderId: 'user-1', recipient: 'GABC', amount: 5, asset: 'XLM', status: 'pending' };
+      const expected = {
+        id: 'tx1',
+        senderId: 'user-1',
+        recipient: 'GABC',
+        amount: 5,
+        asset: 'XLM',
+        status: 'pending',
+        fee: 0,
+      };
       mockPrisma.transaction.create.mockResolvedValue(expected);
 
       const result = await service.create('user-1', 'GABC', 5);
       expect(mockPrisma.transaction.create).toHaveBeenCalledWith({
-        data: { senderId: 'user-1', recipient: 'GABC', amount: 5, asset: 'XLM', status: 'pending' },
+        data: { senderId: 'user-1', recipient: 'GABC', amount: 5, asset: 'XLM', status: 'pending', fee: 0 },
       });
       expect(result).toEqual(expected);
     });
