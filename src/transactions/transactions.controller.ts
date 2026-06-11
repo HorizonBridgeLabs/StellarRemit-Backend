@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { TransactionsService } from './transactions.service';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('transactions')
@@ -11,11 +12,9 @@ export class TransactionsController {
   @Post()
   create(
     @CurrentUser() user: any,
-    @Body('recipient') recipient: string,
-    @Body('amount') amount: number,
-    @Body('asset') asset: string,
+    @Body() dto: CreateTransactionDto,
   ) {
-    return this.tx.create(user.id, recipient, amount, asset);
+    return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset);
   }
 
   @Get()
