@@ -33,4 +33,8 @@ export class EnvConfig {
   @IsString()
   @ValidateIf((_, v) => v !== undefined)
   CORS_ORIGIN?: string;
+
+  @IsString()
+  @ValidateIf((_, v) => v !== undefined)
+  INTERNAL_API_KEY?: string;
 }
