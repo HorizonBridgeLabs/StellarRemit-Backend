@@ -34,4 +34,11 @@ export class UsersController {
   deleteMe(@CurrentUser() user: any) {
     return this.users.softDelete(user.id);
   }
+
+  @ApiOperation({ summary: 'Get user dashboard stats' })
+  @ApiResponse({ status: 200, description: 'Dashboard stats returned' })
+  @Get('me/stats')
+  stats(@CurrentUser() user: any) {
+    return this.users.getStats(user.id);
+  }
 }
