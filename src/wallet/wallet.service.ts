@@ -19,6 +19,22 @@ export class WalletService {
     return this.stellar.getBalances(wallet.publicKey);
   }
 
+  async getTotalBalance(userId: string) {
+    const wallets = await this.prisma.wallet.findMany({
+      where: { userId },
+      select: { publicKey: true, label: true },
+    });
+
+    const balances = await Promise.all(
+      wallets.map(async (w) => {
+        const result = await this.stellar.getBalances(w.publicKey);
+        return { publicKey: w.publicKey, label: w.label, balances: result.balances };
+      }),
+    );
+
+    return { wallets: balances };
+  }
+
   async getBalanceById(userId: string, walletId: string) {
     const wallet = await this.prisma.wallet.findFirst({
       where: { id: walletId, userId },

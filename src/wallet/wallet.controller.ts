@@ -21,6 +21,13 @@ export class WalletController {
 
   @ApiOperation({ summary: 'Get balance of default wallet' })
   @ApiResponse({ status: 200, description: 'Wallet balances returned' })
+  @ApiOperation({ summary: 'Get total balance across all wallets' })
+  @ApiResponse({ status: 200, description: 'Total balances returned' })
+  @Get('total-balance')
+  totalBalance(@CurrentUser() user: any) {
+    return this.wallet.getTotalBalance(user.id);
+  }
+
   @Get('balance')
   balance(@CurrentUser() user: any) {
     return this.wallet.getBalance(user.id);
