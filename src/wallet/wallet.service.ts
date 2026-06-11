@@ -158,6 +158,38 @@ export class WalletService {
     });
   }
 
+  async getTransactions(userId: string, walletId: string, page = 1, limit = 10) {
+    const wallet = await this.prisma.wallet.findFirst({
+      where: { id: walletId, userId },
+    });
+    if (!wallet) throw new NotFoundException('Wallet not found');
+
+    const take = Math.min(limit, 100);
+    const skip = (page - 1) * take;
+
+    const [data, total] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where: { senderId: userId, recipient: wallet.publicKey },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.transaction.count({
+        where: { senderId: userId, recipient: wallet.publicKey },
+      }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit: take,
+        totalPages: Math.ceil(total / take),
+      },
+    };
+  }
+
   async delete(userId: string, walletId: string) {
     const wallet = await this.prisma.wallet.findFirst({
       where: { id: walletId, userId },

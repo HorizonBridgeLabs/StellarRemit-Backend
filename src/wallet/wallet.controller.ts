@@ -19,6 +19,21 @@ export class WalletController {
     return this.wallet.getAll(user.id);
   }
 
+  @ApiOperation({ summary: 'Get transaction history for a specific wallet' })
+  @ApiResponse({ status: 200, description: 'Wallet transaction history returned' })
+  @ApiResponse({ status: 404, description: 'Wallet not found' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @Get(':id/transactions')
+  getTransactions(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.wallet.getTransactions(user.id, id, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+  }
+
   @ApiOperation({ summary: 'Get balance of default wallet' })
   @ApiResponse({ status: 200, description: 'Wallet balances returned' })
   @ApiOperation({ summary: 'Get total balance across all wallets' })
