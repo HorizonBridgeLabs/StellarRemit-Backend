@@ -13,6 +13,9 @@ export class TransactionResponseDto {
   @ApiProperty({ example: '100.00' })
   amount: number;
 
+  @ApiProperty({ example: '0.001' })
+  fee: number;
+
   @ApiProperty({ example: 'XLM' })
   asset: string;
 
