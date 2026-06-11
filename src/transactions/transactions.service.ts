@@ -37,9 +37,15 @@ export class TransactionsService {
   }
 
   async updateStatus(id: string, senderId: string, status: string) {
-    return this.prisma.transaction.updateMany({
+    const result = await this.prisma.transaction.updateMany({
       where: { id, senderId },
       data: { status },
     });
+
+    if (result.count === 0) {
+      return { message: 'Transaction not found or not authorized', updated: false };
+    }
+
+    return { message: 'Transaction status updated', updated: true, status };
   }
 }

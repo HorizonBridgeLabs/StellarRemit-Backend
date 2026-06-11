@@ -29,4 +29,8 @@ export class EnvConfig {
   @IsString()
   @ValidateIf((_, v) => v !== undefined)
   BALANCE_CACHE_TTL_MS?: string;
+
+  @IsString()
+  @ValidateIf((_, v) => v !== undefined)
+  CORS_ORIGIN?: string;
 }
