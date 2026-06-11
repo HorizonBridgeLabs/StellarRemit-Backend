@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { CustomLoggerService } from './common/logger/custom-logger.service';
 import compression from 'compression';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
@@ -45,7 +46,25 @@ async function bootstrap() {
   app.enableVersioning({ type: VersioningType.URI });
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new TransformResponseInterceptor());
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'", 'https://horizon-testnet.stellar.org', 'https://horizon.stellar.org'],
+        },
+      },
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      referrerPolicy: { policy: 'same-origin' },
+    }),
+  );
   app.use(compression());
   app.use(new RequestIdMiddleware().use);
 
@@ -59,6 +78,8 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, swaggerDocument);
 
   app.enableShutdownHooks();
+
+  app.useLogger(new CustomLoggerService());
 
   await app.listen(process.env.PORT ?? 3000);
   console.log(`Application running on port ${process.env.PORT ?? 3000}`);
