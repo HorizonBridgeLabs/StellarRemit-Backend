@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+.env
+.env.example
+coverage
+.nyc_output
+*.md
+.husky
+.github
