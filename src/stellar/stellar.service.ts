@@ -2,10 +2,18 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import * as StellarSdk from 'stellar-sdk';
 import * as https from 'https';
 
+interface CacheEntry {
+  data: { balances: StellarSdk.Horizon.HorizonApi.BalanceLine[] };
+  expiresAt: number;
+}
+
 @Injectable()
 export class StellarService {
   private server: StellarSdk.Horizon.Server;
   private network: string;
+  private balanceCache = new Map<string, CacheEntry>();
+  private readonly CACHE_TTL_MS: number;
+  private readonly MAX_CACHE_SIZE = 1000;
 
   constructor() {
     const isTestnet = (process.env.STELLAR_NETWORK ?? 'testnet') === 'testnet';
@@ -13,11 +21,34 @@ export class StellarService {
     this.server = new StellarSdk.Horizon.Server(
       isTestnet ? 'https://horizon-testnet.stellar.org' : 'https://horizon.stellar.org',
     );
+    const ttl = parseInt(process.env.BALANCE_CACHE_TTL_MS ?? '', 10);
+    this.CACHE_TTL_MS = Number.isNaN(ttl) ? 30000 : ttl;
   }
 
   async getBalances(publicKey: string) {
+    const cached = this.balanceCache.get(publicKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
     const account = await this.server.loadAccount(publicKey);
-    return { balances: account.balances };
+    const data = { balances: account.balances };
+
+    this.setCacheEntry(publicKey, data);
+    return data;
+  }
+
+  private setCacheEntry(key: string, data: { balances: StellarSdk.Horizon.HorizonApi.BalanceLine[] }) {
+    if (this.balanceCache.size >= this.MAX_CACHE_SIZE) {
+      const oldestKey = this.balanceCache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.balanceCache.delete(oldestKey);
+      }
+    }
+    this.balanceCache.set(key, {
+      data,
+      expiresAt: Date.now() + this.CACHE_TTL_MS,
+    });
   }
 
   async sendPayment(destination: string, amount: string, asset = 'XLM') {

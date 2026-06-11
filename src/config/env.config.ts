@@ -25,4 +25,8 @@ export class EnvConfig {
   @IsString()
   @IsNotEmpty()
   STELLAR_SECRET_KEY: string;
+
+  @IsString()
+  @ValidateIf((_, v) => v !== undefined)
+  BALANCE_CACHE_TTL_MS?: string;
 }
