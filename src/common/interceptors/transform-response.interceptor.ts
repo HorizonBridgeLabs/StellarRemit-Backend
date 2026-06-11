@@ -20,7 +20,7 @@ export class TransformResponseInterceptor<T> implements NestInterceptor<T, Stand
 
     return next.handle().pipe(
       map((data) => {
-        if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
+        if (data && typeof data === 'object' && 'success' in data && 'data' in data && 'requestId' in data) {
           return {
             ...data,
             requestId,

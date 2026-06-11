@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './health/health.module';
 import { CleanupModule } from './cleanup/cleanup.module';
 import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 @Module({
   imports: [
@@ -25,6 +26,10 @@ import { RequestLoggingMiddleware } from './common/middleware/request-logging.mi
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggingMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL })
+      .apply(RequestLoggingMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

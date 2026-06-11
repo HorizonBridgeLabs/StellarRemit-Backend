@@ -42,6 +42,7 @@ describe('StellarService', () => {
   let service: StellarService;
 
   beforeEach(async () => {
+    process.env.STELLAR_SECRET_KEY = 'test-secret-key-for-testing-only';
     const module: TestingModule = await Test.createTestingModule({
       providers: [StellarService],
     }).compile();

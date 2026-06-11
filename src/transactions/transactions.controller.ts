@@ -35,8 +35,16 @@ export class TransactionsController {
     @CurrentUser() user: any,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query() filter?: TransactionFilterDto,
+    @Query('status') status?: string,
+    @Query('fromDate') fromDate?: string,
+    @Query('toDate') toDate?: string,
+    @Query('asset') asset?: string,
   ) {
+    const filter: TransactionFilterDto = {};
+    if (status) filter.status = status;
+    if (fromDate) filter.fromDate = fromDate;
+    if (toDate) filter.toDate = toDate;
+    if (asset) filter.asset = asset;
     return this.tx.findAll(user.id, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10, filter);
   }
 

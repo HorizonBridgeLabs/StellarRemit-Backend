@@ -38,10 +38,15 @@ export class StellarService {
       this.setCacheEntry(publicKey, data);
       return data;
     } catch (error) {
-      if (error instanceof StellarSdk.NotFoundError) {
+      if (error instanceof Error && error.name === 'NotFoundError') {
         throw new BadRequestException(`Account not found on the Stellar network: ${publicKey}`);
       }
-      if (error instanceof StellarSdk.NetworkError) {
+      if (
+        error instanceof Error &&
+        (error.name === 'NetworkError' ||
+          error.message?.includes('ECONNREFUSED') ||
+          error.message?.includes('ETIMEDOUT'))
+      ) {
         throw new BadRequestException('Unable to connect to the Stellar network. Please try again later.');
       }
       throw new BadRequestException(
@@ -86,10 +91,15 @@ export class StellarService {
       tx.sign(keypair);
       return await this.server.submitTransaction(tx);
     } catch (error) {
-      if (error instanceof StellarSdk.NotFoundError) {
+      if (error instanceof Error && error.name === 'NotFoundError') {
         throw new BadRequestException(`Account not found on the Stellar network: ${destination}`);
       }
-      if (error instanceof StellarSdk.NetworkError) {
+      if (
+        error instanceof Error &&
+        (error.name === 'NetworkError' ||
+          error.message?.includes('ECONNREFUSED') ||
+          error.message?.includes('ETIMEDOUT'))
+      ) {
         throw new BadRequestException('Unable to connect to the Stellar network. Please try again later.');
       }
       throw new BadRequestException(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

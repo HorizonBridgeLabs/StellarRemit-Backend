@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 import { EnvConfig } from './config/env.config';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
-import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 function validateEnv() {
   const config = plainToInstance(EnvConfig, process.env, {
@@ -33,7 +33,7 @@ function validateEnv() {
 async function bootstrap() {
   validateEnv();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const corsOrigin = process.env.CORS_ORIGIN;
@@ -66,7 +66,6 @@ async function bootstrap() {
     }),
   );
   app.use(compression());
-  app.use(new RequestIdMiddleware().use);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('StellarRemit API')
