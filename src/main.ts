@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { AppModule } from './app.module';
@@ -30,6 +31,17 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors();
+  app.enableVersioning({ type: VersioningType.URI });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('StellarRemit API')
+    .setDescription('Production-ready NestJS API for a Stellar-based remittance platform')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, swaggerDocument);
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
