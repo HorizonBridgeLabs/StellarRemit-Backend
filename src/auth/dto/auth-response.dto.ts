@@ -7,6 +7,9 @@ export class UserResponseDto {
   @ApiProperty({ example: 'user@example.com' })
   email: string;
 
+  @ApiProperty({ example: false })
+  isVerified: boolean;
+
   @ApiProperty({ example: '2024-01-15T10:00:00.000Z' })
   createdAt: Date;
 }
