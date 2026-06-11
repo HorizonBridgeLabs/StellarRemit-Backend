@@ -1,9 +1,16 @@
-import { Controller, Get, Post, Delete, Patch, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Delete, Patch, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WalletService } from './wallet.service';
 import { UpsertWalletDto, CreateWalletDto } from './dto/wallet.dto';
+import {
+  WalletResponseDto,
+  WalletBalanceResponseDto,
+  WalletWithBalancesResponseDto,
+  FundWalletResponseDto,
+  WalletSuccessResponseDto,
+} from './dto/wallet-response.dto';
 
 @ApiTags('Wallet')
 @ApiBearerAuth()
@@ -13,7 +20,7 @@ export class WalletController {
   constructor(private wallet: WalletService) {}
 
   @ApiOperation({ summary: 'Get all wallets for current user' })
-  @ApiResponse({ status: 200, description: 'List of wallets returned' })
+  @ApiResponse({ status: 200, description: 'List of wallets returned', type: [WalletResponseDto] })
   @Get()
   getAll(@CurrentUser() user: any) {
     return this.wallet.getAll(user.id);
@@ -34,22 +41,22 @@ export class WalletController {
     return this.wallet.getTransactions(user.id, id, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
   }
 
-  @ApiOperation({ summary: 'Get balance of default wallet' })
-  @ApiResponse({ status: 200, description: 'Wallet balances returned' })
   @ApiOperation({ summary: 'Get total balance across all wallets' })
-  @ApiResponse({ status: 200, description: 'Total balances returned' })
+  @ApiResponse({ status: 200, description: 'Total balances returned', type: WalletWithBalancesResponseDto })
   @Get('total-balance')
   totalBalance(@CurrentUser() user: any) {
     return this.wallet.getTotalBalance(user.id);
   }
 
+  @ApiOperation({ summary: 'Get balance of default wallet' })
+  @ApiResponse({ status: 200, description: 'Wallet balances returned', type: WalletBalanceResponseDto })
   @Get('balance')
   balance(@CurrentUser() user: any) {
     return this.wallet.getBalance(user.id);
   }
 
   @ApiOperation({ summary: 'Get balance of a specific wallet' })
-  @ApiResponse({ status: 200, description: 'Wallet balances returned' })
+  @ApiResponse({ status: 200, description: 'Wallet balances returned', type: WalletBalanceResponseDto })
   @ApiResponse({ status: 404, description: 'Wallet not found' })
   @Get(':id/balance')
   balanceById(@CurrentUser() user: any, @Param('id') id: string) {
@@ -57,7 +64,7 @@ export class WalletController {
   }
 
   @ApiOperation({ summary: 'Upsert a wallet by public key' })
-  @ApiResponse({ status: 200, description: 'Wallet upserted successfully' })
+  @ApiResponse({ status: 200, description: 'Wallet upserted successfully', type: WalletResponseDto })
   @ApiResponse({ status: 409, description: 'Wallet already registered by another user' })
   @Post()
   upsert(@CurrentUser() user: any, @Body() dto: UpsertWalletDto) {
@@ -65,7 +72,7 @@ export class WalletController {
   }
 
   @ApiOperation({ summary: 'Create a new wallet with optional label' })
-  @ApiResponse({ status: 201, description: 'Wallet created successfully' })
+  @ApiResponse({ status: 201, description: 'Wallet created successfully', type: WalletResponseDto })
   @ApiResponse({ status: 409, description: 'Wallet already registered' })
   @Post('create')
   create(@CurrentUser() user: any, @Body() dto: CreateWalletDto) {
@@ -73,7 +80,7 @@ export class WalletController {
   }
 
   @ApiOperation({ summary: 'Fund a wallet via Stellar friendbot' })
-  @ApiResponse({ status: 200, description: 'Wallet funded successfully' })
+  @ApiResponse({ status: 200, description: 'Wallet funded successfully', type: FundWalletResponseDto })
   @ApiResponse({ status: 400, description: 'Friendbot only available on testnet' })
   @Post('fund')
   fund(@CurrentUser() user: any, @Body() dto: UpsertWalletDto) {
@@ -81,7 +88,7 @@ export class WalletController {
   }
 
   @ApiOperation({ summary: 'Set a wallet as default' })
-  @ApiResponse({ status: 200, description: 'Wallet set as default' })
+  @ApiResponse({ status: 200, description: 'Wallet set as default', type: WalletResponseDto })
   @ApiResponse({ status: 404, description: 'Wallet not found' })
   @Patch(':id/default')
   setDefault(@CurrentUser() user: any, @Param('id') id: string) {
@@ -89,7 +96,7 @@ export class WalletController {
   }
 
   @ApiOperation({ summary: 'Delete a wallet' })
-  @ApiResponse({ status: 200, description: 'Wallet deleted successfully' })
+  @ApiResponse({ status: 200, description: 'Wallet deleted successfully', type: WalletSuccessResponseDto })
   @ApiResponse({ status: 404, description: 'Wallet not found' })
   @Delete(':id')
   remove(@CurrentUser() user: any, @Param('id') id: string) {

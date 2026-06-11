@@ -6,6 +6,7 @@ import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionStatusDto } from './dto/update-transaction-status.dto';
 import { TransactionFilterDto } from './dto/transaction-filter.dto';
+import { TransactionResponseDto, TransactionStatusResponseDto } from './dto/transaction-response.dto';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()
@@ -15,7 +16,7 @@ export class TransactionsController {
   constructor(private tx: TransactionsService) {}
 
   @ApiOperation({ summary: 'Create a new transaction' })
-  @ApiResponse({ status: 201, description: 'Transaction created successfully' })
+  @ApiResponse({ status: 201, description: 'Transaction created successfully', type: TransactionResponseDto })
   @Post()
   create(@CurrentUser() user: any, @Body() dto: CreateTransactionDto) {
     return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset);
@@ -55,7 +56,7 @@ export class TransactionsController {
   }
 
   @ApiOperation({ summary: 'Update transaction status' })
-  @ApiResponse({ status: 200, description: 'Transaction status updated' })
+  @ApiResponse({ status: 200, description: 'Transaction status updated', type: TransactionStatusResponseDto })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   @Patch(':id/status')
   updateStatus(@CurrentUser() user: any, @Param('id') id: string, @Body() dto: UpdateTransactionStatusDto) {

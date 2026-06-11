@@ -4,6 +4,12 @@ import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, RefreshDto, LogoutDto } from './dto/auth.dto';
+import {
+  RegisterResponseDto,
+  AuthTokensResponseDto,
+  UserResponseDto,
+  LogoutResponseDto,
+} from './dto/auth-response.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 
@@ -13,7 +19,7 @@ export class AuthController {
   constructor(private auth: AuthService) {}
 
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 201, description: 'User registered successfully', type: RegisterResponseDto })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('register')
@@ -22,7 +28,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Login with email and password' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 200, description: 'Login successful', type: AuthTokensResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('login')
@@ -31,7 +37,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Tokens refreshed' })
+  @ApiResponse({ status: 200, description: 'Tokens refreshed', type: AuthTokensResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   @Post('refresh')
   refresh(@Body() dto: RefreshDto) {
@@ -40,7 +46,7 @@ export class AuthController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout and revoke tokens' })
-  @ApiResponse({ status: 200, description: 'Logout successful' })
+  @ApiResponse({ status: 200, description: 'Logout successful', type: LogoutResponseDto })
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@CurrentUser() user: any, @Req() req: Request, @Body() dto: LogoutDto) {
@@ -51,7 +57,7 @@ export class AuthController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current authenticated user' })
-  @ApiResponse({ status: 200, description: 'Current user returned' })
+  @ApiResponse({ status: 200, description: 'Current user returned', type: UserResponseDto })
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@CurrentUser() user: any) {
