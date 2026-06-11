@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 const mockPrisma = {
   user: {
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
   },
@@ -64,7 +65,7 @@ describe('AuthService - Email Verification', () => {
 
   describe('verifyEmail', () => {
     it('verifies email with valid token', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-id', email: 'test@example.com', isVerified: false });
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-id', email: 'test@example.com', isVerified: false });
       mockPrisma.user.update.mockResolvedValue({ id: 'user-id', isVerified: true });
 
       const result = await service.verifyEmail('valid-token');
@@ -78,7 +79,7 @@ describe('AuthService - Email Verification', () => {
     });
 
     it('throws BadRequestException for invalid token', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findFirst.mockResolvedValue(null);
 
       await expect(service.verifyEmail('invalid-token')).rejects.toThrow(BadRequestException);
     });
