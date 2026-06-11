@@ -16,6 +16,9 @@ model User {
   deletedAt        DateTime?
   wallets          Wallet[]
   sentTx           Transaction[] @relation("SentTransactions")
+
+  @@index([deletedAt])
+  @@index([createdAt])
 }
 
 model Wallet {
@@ -26,6 +29,9 @@ model Wallet {
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDefault])
 }
 
 model Transaction {
@@ -38,6 +44,13 @@ model Transaction {
   txHash    String?
   createdAt DateTime @default(now())
   sender    User     @relation("SentTransactions", fields: [senderId], references: [id])
+
+  @@index([senderId])
+  @@index([senderId, status])
+  @@index([senderId, createdAt])
+  @@index([recipient])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model BlacklistedToken {
@@ -45,4 +58,6 @@ model BlacklistedToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@index([expiresAt])
 }
