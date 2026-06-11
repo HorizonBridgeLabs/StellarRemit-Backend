@@ -12,9 +12,9 @@ export interface TransactionFilter {
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  create(senderId: string, recipient: string, amount: number, asset = 'XLM') {
+  create(senderId: string, recipient: string, amount: number, asset = 'XLM', fee = 0) {
     return this.prisma.transaction.create({
-      data: { senderId, recipient, amount, asset, status: 'pending' },
+      data: { senderId, recipient, amount, asset, status: 'pending', fee },
     });
   }
 
