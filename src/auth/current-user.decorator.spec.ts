@@ -5,7 +5,7 @@ jest.mock('@nestjs/common', () => {
   const actual = jest.requireActual('@nestjs/common');
   return {
     ...actual,
-    createParamDecorator: (fn: Function) => ({ __factory: fn }),
+    createParamDecorator: (fn: (...args: any[]) => any) => ({ __factory: fn }),
   };
 });
 
