@@ -7,6 +7,8 @@ import { plainToInstance } from 'class-transformer';
 import { AppModule } from './app.module';
 import { EnvConfig } from './config/env.config';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 function validateEnv() {
   const config = plainToInstance(EnvConfig, process.env, {
@@ -41,7 +43,9 @@ async function bootstrap() {
   });
   app.enableVersioning({ type: VersioningType.URI });
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.use(helmet());
+  app.use(new RequestIdMiddleware().use);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('StellarRemit API')
