@@ -4,6 +4,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, RefreshDto, LogoutDto } from './dto/auth.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import {
   RegisterResponseDto,
   AuthTokensResponseDto,
@@ -67,8 +68,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify email address with token' })
   @ApiResponse({ status: 200, description: 'Email verified successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('verify-email')
-  verifyEmail(@Body('token') token: string) {
-    return this.auth.verifyEmail(token);
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.auth.verifyEmail(dto.token);
   }
 }

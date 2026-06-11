@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 
 export interface AuthTokens {
   access_token: string;
@@ -164,11 +165,6 @@ export class AuthService {
   }
 
   private generateVerificationToken(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let token = '';
-    for (let i = 0; i < 32; i++) {
-      token += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return token;
+    return randomBytes(32).toString('hex');
   }
 }

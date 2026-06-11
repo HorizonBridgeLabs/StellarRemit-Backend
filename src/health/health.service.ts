@@ -1,12 +1,28 @@
 import { Injectable } from '@nestjs/common';
+import { ApiProperty } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
 
-export interface HealthCheckResult {
+class DatabaseCheck {
+  @ApiProperty({ example: 'ok' })
   status: string;
+
+  @ApiProperty({ example: 5 })
+  latencyMs: number;
+}
+
+export class HealthCheckResult {
+  @ApiProperty({ example: 'ok' })
+  status: string;
+
+  @ApiProperty({ example: '2024-01-15T10:00:00.000Z' })
   timestamp: string;
+
+  @ApiProperty({ example: 123.45 })
   uptime: number;
+
+  @ApiProperty({ type: DatabaseCheck })
   checks: {
-    database: { status: string; latencyMs: number };
+    database: DatabaseCheck;
   };
 }
 

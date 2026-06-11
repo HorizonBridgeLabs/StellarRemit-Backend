@@ -97,16 +97,17 @@ export class TransactionsService {
   async getReceipt(id: string, senderId: string) {
     const transaction = await this.prisma.transaction.findFirst({
       where: { id, senderId },
-      include: { sender: { select: { email: true } } },
     });
 
     if (!transaction) {
       return null;
     }
 
+    const amount = Number(transaction.amount);
+    const fee = Number(transaction.fee);
+
     return {
       id: transaction.id,
-      senderEmail: transaction.sender.email,
       recipient: transaction.recipient,
       amount: transaction.amount,
       fee: transaction.fee,
@@ -114,7 +115,7 @@ export class TransactionsService {
       status: transaction.status,
       txHash: transaction.txHash,
       createdAt: transaction.createdAt,
-      total: (transaction.amount as any) + (transaction.fee as any),
+      total: amount + fee,
     };
   }
 
