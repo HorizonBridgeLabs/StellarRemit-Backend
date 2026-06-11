@@ -2,6 +2,14 @@
   "name": "stellarremit-api",
   "version": "1.0.0",
   "description": "Stellar-based remittance platform API",
+  "lint-staged": {
+    "*.{ts,js,json}": [
+      "prettier --write"
+    ],
+    "*.ts": [
+      "eslint --fix"
+    ]
+  },
   "scripts": {
     "build": "nest build",
     "start": "node dist/main",
@@ -13,7 +21,8 @@
     "test:cov": "jest --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prepare": "husky"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
