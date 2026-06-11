@@ -7,6 +7,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { StellarModule } from './stellar/stellar.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './health/health.module';
+import { CleanupModule } from './cleanup/cleanup.module';
 import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware';
 
 @Module({
@@ -19,6 +20,7 @@ import { RequestLoggingMiddleware } from './common/middleware/request-logging.mi
     TransactionsModule,
     StellarModule,
     HealthModule,
+    CleanupModule,
   ],
 })
 export class AppModule {
