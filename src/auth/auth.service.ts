@@ -6,7 +6,10 @@ import { BadRequestException, ConflictException, Injectable, UnauthorizedExcepti
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwt: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+  ) {}
 
   async register(dto: RegisterDto) {
     const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
@@ -109,10 +112,13 @@ export class AuthService {
   }
 
   private signRefreshToken(sub: string, email: string) {
-    return this.jwt.sign({ sub, email }, {
-      secret: process.env.JWT_REFRESH_SECRET ?? 'refresh-secret',
-      expiresIn: '30d',
-    });
+    return this.jwt.sign(
+      { sub, email },
+      {
+        secret: process.env.JWT_REFRESH_SECRET ?? 'refresh-secret',
+        expiresIn: '30d',
+      },
+    );
   }
 
   private async updateRefreshTokenHash(userId: string, refreshToken: string) {
@@ -125,7 +131,7 @@ export class AuthService {
       where: { id: userId },
       select: { id: true, email: true, createdAt: true },
     });
-  
+
     if (!user) throw new UnauthorizedException('User not found');
     return user;
   }

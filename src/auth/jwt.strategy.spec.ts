@@ -19,10 +19,10 @@ describe('JwtStrategy', () => {
   it('returns user without password when found', async () => {
     prisma.blacklistedToken.findUnique.mockResolvedValue(null);
     prisma.user.findUnique.mockResolvedValue(mockUser);
-    const result = await strategy.validate(
-      { headers: { authorization: 'Bearer token' } } as any,
-      { sub: '1', email: 'a@b.com' },
-    );
+    const result = await strategy.validate({ headers: { authorization: 'Bearer token' } } as any, {
+      sub: '1',
+      email: 'a@b.com',
+    });
     expect(result).not.toHaveProperty('password');
     expect(result).toMatchObject({ id: '1', email: 'a@b.com' });
   });

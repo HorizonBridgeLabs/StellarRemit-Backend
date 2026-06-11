@@ -5,7 +5,10 @@ import { StellarService } from '../stellar/stellar.service';
 
 @Injectable()
 export class WalletService {
-  constructor(private prisma: PrismaService, private stellar: StellarService) {}
+  constructor(
+    private prisma: PrismaService,
+    private stellar: StellarService,
+  ) {}
 
   async getBalance(userId: string) {
     const wallet = await this.prisma.wallet.findFirst({

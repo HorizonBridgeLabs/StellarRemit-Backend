@@ -78,25 +78,27 @@ export class StellarService {
     endpoint.searchParams.set('addr', publicKey);
 
     return new Promise<any>((resolve, reject) => {
-      https.get(endpoint, (res) => {
-        let body = '';
-        res.on('data', (chunk) => {
-          body += chunk;
-        });
+      https
+        .get(endpoint, (res) => {
+          let body = '';
+          res.on('data', (chunk) => {
+            body += chunk;
+          });
 
-        res.on('end', () => {
-          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            try {
-              resolve(JSON.parse(body));
-            } catch (error) {
-              resolve({ result: body });
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(body));
+              } catch (error) {
+                resolve({ result: body });
+              }
+              return;
             }
-            return;
-          }
 
-          reject(new BadRequestException(`Friendbot request failed with status ${res.statusCode}: ${body}`));
-        });
-      }).on('error', (error) => reject(new BadRequestException(`Friendbot request failed: ${error.message}`)));
+            reject(new BadRequestException(`Friendbot request failed with status ${res.statusCode}: ${body}`));
+          });
+        })
+        .on('error', (error) => reject(new BadRequestException(`Friendbot request failed: ${error.message}`)));
     });
   }
 }

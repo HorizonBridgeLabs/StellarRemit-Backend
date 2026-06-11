@@ -19,9 +19,7 @@ function validateEnv() {
       const messages = Object.values(constraints);
       missingVars.push(`  - ${error.property}: ${messages.join(', ')}`);
     }
-    throw new Error(
-      `Environment validation failed - missing or invalid variables:\n${missingVars.join('\n')}`,
-    );
+    throw new Error(`Environment validation failed - missing or invalid variables:\n${missingVars.join('\n')}`);
   }
 }
 

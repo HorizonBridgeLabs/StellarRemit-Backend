@@ -10,10 +10,7 @@ export class TransactionsController {
   constructor(private tx: TransactionsService) {}
 
   @Post()
-  create(
-    @CurrentUser() user: any,
-    @Body() dto: CreateTransactionDto,
-  ) {
+  create(@CurrentUser() user: any, @Body() dto: CreateTransactionDto) {
     return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset);
   }
 

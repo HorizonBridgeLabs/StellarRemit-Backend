@@ -35,12 +35,11 @@ export class AuthController {
     return this.auth.logout(user.id, accessToken, dto.refreshToken);
   }
 
+  // ...inside AuthController class:
 
-// ...inside AuthController class:
-
-@UseGuards(JwtAuthGuard)
-@Get('me')
-getMe(@CurrentUser() user: any) {
-  return this.auth.getMe(user.id);
-}
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@CurrentUser() user: any) {
+    return this.auth.getMe(user.id);
+  }
 }

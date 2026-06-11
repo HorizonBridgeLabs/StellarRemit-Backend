@@ -173,7 +173,13 @@ describe('WalletService', () => {
     it('sets wallet as default', async () => {
       mockPrisma.wallet.findFirst.mockResolvedValue({ id: 'w1', userId: 'user-1', publicKey: 'GA...' });
       mockPrisma.wallet.updateMany.mockResolvedValue({ count: 1 });
-      mockPrisma.wallet.update.mockResolvedValue({ id: 'w1', publicKey: 'GA...', label: null, isDefault: true, createdAt: new Date() });
+      mockPrisma.wallet.update.mockResolvedValue({
+        id: 'w1',
+        publicKey: 'GA...',
+        label: null,
+        isDefault: true,
+        createdAt: new Date(),
+      });
 
       const result = await service.setDefault('user-1', 'w1');
 
