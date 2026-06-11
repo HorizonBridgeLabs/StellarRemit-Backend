@@ -63,4 +63,12 @@ export class AuthController {
   getMe(@CurrentUser() user: any) {
     return this.auth.getMe(user.id);
   }
+
+  @ApiOperation({ summary: 'Verify email address with token' })
+  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  @Post('verify-email')
+  verifyEmail(@Body('token') token: string) {
+    return this.auth.verifyEmail(token);
+  }
 }
