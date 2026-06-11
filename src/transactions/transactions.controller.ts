@@ -19,7 +19,7 @@ export class TransactionsController {
   @ApiResponse({ status: 201, description: 'Transaction created successfully', type: TransactionResponseDto })
   @Post()
   create(@CurrentUser() user: any, @Body() dto: CreateTransactionDto) {
-    return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset);
+    return this.tx.create(user.id, dto.recipient, dto.amount, dto.asset, dto.fee);
   }
 
   @ApiOperation({ summary: 'List transactions for current user' })
@@ -66,6 +66,18 @@ export class TransactionsController {
   @ApiOperation({ summary: 'Update transaction status' })
   @ApiResponse({ status: 200, description: 'Transaction status updated', type: TransactionStatusResponseDto })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
+  @ApiOperation({ summary: 'Get transaction receipt with details' })
+  @ApiResponse({ status: 200, description: 'Transaction receipt returned', type: TransactionResponseDto })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
+  @Get(':id/receipt')
+  async getReceipt(@CurrentUser() user: any, @Param('id') id: string) {
+    const receipt = await this.tx.getReceipt(id, user.id);
+    if (!receipt) {
+      return { message: 'Transaction not found', found: false };
+    }
+    return { data: receipt, found: true };
+  }
+
   @Patch(':id/status')
   updateStatus(@CurrentUser() user: any, @Param('id') id: string, @Body() dto: UpdateTransactionStatusDto) {
     return this.tx.updateStatus(id, user.id, dto.status);

@@ -14,6 +14,12 @@ export class CreateTransactionDto {
   amount: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  fee?: number;
+
+  @IsOptional()
   @IsString()
   @IsIn(['XLM'])
   asset?: string;

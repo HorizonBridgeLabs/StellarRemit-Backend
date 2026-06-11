@@ -12,9 +12,9 @@ export interface TransactionFilter {
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  create(senderId: string, recipient: string, amount: number, asset = 'XLM') {
+  create(senderId: string, recipient: string, amount: number, asset = 'XLM', fee = 0) {
     return this.prisma.transaction.create({
-      data: { senderId, recipient, amount, asset, status: 'pending' },
+      data: { senderId, recipient, amount, asset, status: 'pending', fee },
     });
   }
 
@@ -91,6 +91,31 @@ export class TransactionsService {
         limit: take,
         totalPages: Math.ceil(total / take),
       },
+    };
+  }
+
+  async getReceipt(id: string, senderId: string) {
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { id, senderId },
+    });
+
+    if (!transaction) {
+      return null;
+    }
+
+    const amount = Number(transaction.amount);
+    const fee = Number(transaction.fee);
+
+    return {
+      id: transaction.id,
+      recipient: transaction.recipient,
+      amount: transaction.amount,
+      fee: transaction.fee,
+      asset: transaction.asset,
+      status: transaction.status,
+      txHash: transaction.txHash,
+      createdAt: transaction.createdAt,
+      total: amount + fee,
     };
   }
 

@@ -26,6 +26,14 @@ export class WalletController {
     return this.wallet.getAll(user.id);
   }
 
+  @ApiOperation({ summary: 'Search wallets by label' })
+  @ApiResponse({ status: 200, description: 'Matching wallets returned', type: [WalletResponseDto] })
+  @ApiQuery({ name: 'q', required: true, type: String, description: 'Search query for wallet label' })
+  @Get('search')
+  search(@CurrentUser() user: any, @Query('q') q: string) {
+    return this.wallet.searchByLabel(user.id, q);
+  }
+
   @ApiOperation({ summary: 'Get transaction history for a specific wallet' })
   @ApiResponse({ status: 200, description: 'Wallet transaction history returned' })
   @ApiResponse({ status: 404, description: 'Wallet not found' })

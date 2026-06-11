@@ -51,6 +51,17 @@ export class WalletService {
     });
   }
 
+  async searchByLabel(userId: string, query: string) {
+    return this.prisma.wallet.findMany({
+      where: {
+        userId,
+        label: { contains: query, mode: 'insensitive' },
+      },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+      select: { id: true, publicKey: true, label: true, isDefault: true, createdAt: true },
+    });
+  }
+
   async create(userId: string, publicKey: string, label?: string) {
     if (!publicKey) throw new BadRequestException('publicKey is required');
 
