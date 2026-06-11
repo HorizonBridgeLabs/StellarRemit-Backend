@@ -31,11 +31,23 @@ export class StellarService {
       return cached.data;
     }
 
-    const account = await this.server.loadAccount(publicKey);
-    const data = { balances: account.balances };
+    try {
+      const account = await this.server.loadAccount(publicKey);
+      const data = { balances: account.balances };
 
-    this.setCacheEntry(publicKey, data);
-    return data;
+      this.setCacheEntry(publicKey, data);
+      return data;
+    } catch (error) {
+      if (error instanceof StellarSdk.NotFoundError) {
+        throw new BadRequestException(`Account not found on the Stellar network: ${publicKey}`);
+      }
+      if (error instanceof StellarSdk.NetworkError) {
+        throw new BadRequestException('Unable to connect to the Stellar network. Please try again later.');
+      }
+      throw new BadRequestException(
+        `Failed to fetch balances: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   private setCacheEntry(key: string, data: { balances: StellarSdk.Horizon.HorizonApi.BalanceLine[] }) {
@@ -53,20 +65,35 @@ export class StellarService {
 
   async sendPayment(destination: string, amount: string, asset = 'XLM') {
     const secret = process.env.STELLAR_SECRET_KEY!;
-    const keypair = StellarSdk.Keypair.fromSecret(secret);
-    const account = await this.server.loadAccount(keypair.publicKey());
-    const stellarAsset = asset === 'XLM' ? StellarSdk.Asset.native() : new StellarSdk.Asset(asset, keypair.publicKey());
+    if (!secret) {
+      throw new BadRequestException('Stellar secret key is not configured');
+    }
 
-    const tx = new StellarSdk.TransactionBuilder(account, {
-      fee: StellarSdk.BASE_FEE,
-      networkPassphrase: this.network,
-    })
-      .addOperation(StellarSdk.Operation.payment({ destination, asset: stellarAsset, amount }))
-      .setTimeout(30)
-      .build();
+    try {
+      const keypair = StellarSdk.Keypair.fromSecret(secret);
+      const account = await this.server.loadAccount(keypair.publicKey());
+      const stellarAsset =
+        asset === 'XLM' ? StellarSdk.Asset.native() : new StellarSdk.Asset(asset, keypair.publicKey());
 
-    tx.sign(keypair);
-    return this.server.submitTransaction(tx);
+      const tx = new StellarSdk.TransactionBuilder(account, {
+        fee: StellarSdk.BASE_FEE,
+        networkPassphrase: this.network,
+      })
+        .addOperation(StellarSdk.Operation.payment({ destination, asset: stellarAsset, amount }))
+        .setTimeout(30)
+        .build();
+
+      tx.sign(keypair);
+      return await this.server.submitTransaction(tx);
+    } catch (error) {
+      if (error instanceof StellarSdk.NotFoundError) {
+        throw new BadRequestException(`Account not found on the Stellar network: ${destination}`);
+      }
+      if (error instanceof StellarSdk.NetworkError) {
+        throw new BadRequestException('Unable to connect to the Stellar network. Please try again later.');
+      }
+      throw new BadRequestException(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async fundAccount(publicKey: string) {
