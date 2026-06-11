@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { AppModule } from './app.module';
 import { EnvConfig } from './config/env.config';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 function validateEnv() {
   const config = plainToInstance(EnvConfig, process.env, {
@@ -32,6 +34,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors();
   app.enableVersioning({ type: VersioningType.URI });
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.use(helmet());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('StellarRemit API')
@@ -43,5 +47,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, swaggerDocument);
 
   await app.listen(process.env.PORT ?? 3000);
+  console.log(`Application running on port ${process.env.PORT ?? 3000}`);
+  console.log(`Swagger docs available at /api/docs`);
 }
 bootstrap();
