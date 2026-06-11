@@ -94,6 +94,30 @@ export class TransactionsService {
     };
   }
 
+  async getReceipt(id: string, senderId: string) {
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { id, senderId },
+      include: { sender: { select: { email: true } } },
+    });
+
+    if (!transaction) {
+      return null;
+    }
+
+    return {
+      id: transaction.id,
+      senderEmail: transaction.sender.email,
+      recipient: transaction.recipient,
+      amount: transaction.amount,
+      fee: transaction.fee,
+      asset: transaction.asset,
+      status: transaction.status,
+      txHash: transaction.txHash,
+      createdAt: transaction.createdAt,
+      total: (transaction.amount as any) + (transaction.fee as any),
+    };
+  }
+
   async updateStatus(id: string, senderId: string, status: string) {
     const result = await this.prisma.transaction.updateMany({
       where: { id, senderId },
