@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import compression from 'compression';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { AppModule } from './app.module';
@@ -45,6 +46,7 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.use(helmet());
+  app.use(compression());
   app.use(new RequestIdMiddleware().use);
 
   const swaggerConfig = new DocumentBuilder()
